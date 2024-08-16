@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'node:crypto';
 import { cache } from './cache';
+import { logger } from './logger';
 
 export function shorten(req: Request, res: Response) {
     const { longUrl } = req.body;
@@ -9,10 +10,10 @@ export function shorten(req: Request, res: Response) {
     cache.set(hash, longUrl);
 
     const shortUrl = getShortUrl(req, hash);
-    console.log('URL shortened', {
+    logger.info({
         longUrl,
         shortUrl,
-    });
+    }, 'URL shortened');
 
     res.send({
         shortUrl,
@@ -29,5 +30,5 @@ function generateShortHash(url: string) {
         .createHash('sha256')
         .update(url)
         .digest('base64')
-        .substring(1, 8);
+        .substring(1, 8); // TODO: do it the right way
 }
