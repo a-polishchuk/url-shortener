@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response } from "express";
 import dotenv from "dotenv";
 import { shorten } from "./shorten";
 import { short } from "./short";
@@ -10,12 +10,9 @@ logger.info(config.parsed, 'dotenv config parsed');
 const app = express();
 app.disable('x-powered-by');
 
-// middleware function to parse JSON request body
 app.use(express.json());
-
-// middleware to log all request with timestamps
 app.use((req, _res, next) => {
-    logger.info(req.path, 'incoming request');
+    logger.info(`requested ${req.path}`);
     next();
 });
 
@@ -25,10 +22,12 @@ app.get('/', (_req, res) => {
 app.post('/shorten', shorten);
 app.get('/short/:id', short);
 
-// all unmatched routes will be handled by this middleware
 app.use((_req, res, _next) => {
-    // TODO: return some funy static resource instead
-    res.status(404).send("Page not found");
+    res.status(404).sendFile('404.gif', { root: './static' }, (err) => {
+        if (err) {
+            logger.error(err, "send file error");
+        }
+    });
 });
 
 const PORT = process.env.PORT || 3001;
